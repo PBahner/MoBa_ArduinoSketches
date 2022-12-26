@@ -10,16 +10,16 @@ int brakePin = 9;
 //boolean to switch direction
 bool directionState;
 
-***REMOVED***
+void setup() {
   
 //define pins
 pinMode(directionPin, OUTPUT);
 pinMode(pwmPin, OUTPUT);
 pinMode(brakePin, OUTPUT);
 
-***REMOVED***
+}
 
-***REMOVED***
+void loop() {
 
   //change direction every loop()
   directionState = !directionState;
@@ -27,11 +27,11 @@ pinMode(brakePin, OUTPUT);
   //write a low state to the direction pin (13)
   if(directionState == false){
     digitalWrite(directionPin, LOW);
-***REMOVED***
+  }
   //write a high state to the direction pin (13)
   else{
     digitalWrite(directionPin, HIGH);
-***REMOVED***
+  }
 
   //release breaks
   digitalWrite(brakePin, LOW);
@@ -43,7 +43,7 @@ pinMode(brakePin, OUTPUT);
   for (byte speed=255; speed>=0; speed--) {
     analogWrite(pwmPin, speed);
     delay(20);
-***REMOVED***
+  }
 
   //activate breaks
   digitalWrite(brakePin, HIGH);
@@ -51,4 +51,4 @@ pinMode(brakePin, OUTPUT);
   analogWrite(pwmPin, 0);
 
   delay(2000);
-***REMOVED***
+}

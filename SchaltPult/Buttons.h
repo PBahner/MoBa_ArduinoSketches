@@ -8,15 +8,15 @@
 
 struct buttonArray {
   bool array[ROWS][COLS];
-***REMOVED***;
+};
 struct eventFunctionsArray {
   void (*btnDownFunctions[ROWS])(uint8_t, uint8_t[], uint8_t);
   eventFunctionsArray() {
     for(int r=0; r<ROWS; r++) {
       btnDownFunctions[r] = NULL;
-  ***REMOVED***
-***REMOVED***
-***REMOVED***;
+    }
+  }
+};
 
 class Buttons {
   public:
@@ -35,5 +35,5 @@ class Buttons {
     buttonArray getStates();
     void checkForEvents(buttonArray);
     
-***REMOVED***;
+};
 #endif

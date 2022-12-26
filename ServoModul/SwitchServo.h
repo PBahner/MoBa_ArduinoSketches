@@ -16,7 +16,7 @@ class SwitchServo: public Servo {
     void setDeflection(int d) {
       totalDeflection = d;
       halfDeflection = d/2;
-  ***REMOVED***
+    }
     void setPotiPin(uint8_t pin) {
       potiPin = pin;
       int diff = map(analogRead(potiPin), 0, 1023, -200, 200);
@@ -24,20 +24,20 @@ class SwitchServo: public Servo {
       Serial.print(pin);
       Serial.print(": ");
       Serial.println(middle);
-  ***REMOVED***
+    }
     void moveSwitchServoMicrosecondsUp() {  // increase micros
       for(int micros=middle-halfDeflection; micros<middle+halfDeflection; micros++) {
         writeMicroseconds(micros);
         delayMicroseconds(SERVO_SPEED);
-    ***REMOVED***
-  ***REMOVED***
+      }
+    }
 
     void moveSwitchServoMicrosecondsDown() {  // decrease micros
       for(int micros=middle+halfDeflection; micros>middle-halfDeflection; micros--) {
         writeMicroseconds(micros);
         delayMicroseconds(SERVO_SPEED);
-    ***REMOVED***
-  ***REMOVED***
+      }
+    }
   
 
   public:
@@ -45,21 +45,21 @@ class SwitchServo: public Servo {
       attach(servoPin);
       setPotiPin(potiPin);
       setDeflection(totalDeflection);
-  ***REMOVED***
+    }
 
     void moveSwitchServo(bool target) {
       if(target != targetSwitchState) {
         if(target) {
           moveSwitchServoMicrosecondsDown();
-      ***REMOVED*** else {
+        } else {
           moveSwitchServoMicrosecondsUp();
-      ***REMOVED***
+        }
         targetSwitchState = target;
-    ***REMOVED***
-  ***REMOVED***
+      }
+    }
     
     void updateCurrentSwitchState(bool current) {
       currentSwitchState = current;
-  ***REMOVED***
-***REMOVED***;
+    }
+};
 #endif

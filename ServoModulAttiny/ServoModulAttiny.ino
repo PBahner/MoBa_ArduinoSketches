@@ -16,7 +16,7 @@ byte ANGLE_RIGHT;
 byte ANGLE_MIDDLE = 65;
 byte currentAngle;
 
-***REMOVED***
+void setup() {
   pinMode(SERVO_PIN, OUTPUT);  // set servo as output pin
   digitalWrite(SERVO_PIN, LOW);
   pinMode(SET_LEFT_PIN, INPUT);
@@ -30,25 +30,25 @@ byte currentAngle;
   // get current Switch pos
   if (digitalRead(FEEDBACK_PIN)) {
     currentAngle = ANGLE_LEFT;
-***REMOVED*** else {
+  } else {
     currentAngle = ANGLE_RIGHT;
-***REMOVED***
+  }
   
   delay(500);
   servoPulse(currentAngle);
-***REMOVED***
+}
 
 
 void loop () {
   if(digitalRead(SET_RIGHT_PIN)) {
     moveServo(ANGLE_RIGHT);
     delay(200);
-***REMOVED***
+  }
   if (digitalRead(SET_LEFT_PIN)){
     moveServo(ANGLE_LEFT);
     delay(200);
-***REMOVED***
-***REMOVED***
+  }
+}
 
 
 void moveServo (int desiredAngle) {
@@ -56,15 +56,15 @@ void moveServo (int desiredAngle) {
     for (byte angle=currentAngle; angle<=desiredAngle; angle++) {
       servoPulse(angle);
       delay(SERVO_SPEED);
-  ***REMOVED***
-***REMOVED*** else if (currentAngle > desiredAngle) {
+    }
+  } else if (currentAngle > desiredAngle) {
     for (byte angle=currentAngle; angle>=desiredAngle; angle--) {
       servoPulse(angle);
       delay(SERVO_SPEED);
-  ***REMOVED***
-***REMOVED***
+    }
+  }
   currentAngle = desiredAngle;
-***REMOVED***
+}
 
 
 void servoPulse (int angle) {
@@ -75,4 +75,4 @@ void servoPulse (int angle) {
   delayMicroseconds(pwm);
   digitalWrite(SERVO_PIN, LOW);
   delay(20);                   // Refresh cycle of servo
-***REMOVED***
+}
