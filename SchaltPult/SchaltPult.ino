@@ -3,8 +3,10 @@
 #include "WlanPass.h"
 #include "Buttons.h"
 #include "WiFi.h"
+#include "MCP23017.h" // library from RobTillaart https://github.com/RobTillaart/MCP23017_RT
 
-Buttons buttons(0x20, 0x21); // (0x38, 0x39)
+Buttons buttons(0x38, 0x39); // (0x20, 0x21)
+MCP23017 Expander1(0x20);
 
 SocketIOclient socketIO;
 WiFiClient client;
@@ -14,17 +16,20 @@ const char path[] = "/socket.io/?EIO=4"; // Socket.IO Base Path
     
 unsigned long lastBtnEvent;
 
-
 void setup() {
   Serial.begin(115200);
+  Expander1.begin();
 
+  Expander1.pinMode8(0, 0x00);
+  Expander1.pinMode8(1, 0x00);
+
+  // initialize button listeners 
   buttons.onButtonsDown(1, onSwitchButtonsDown);
   buttons.onButtonsDown(2, onSwitchButtonsDown);
 
   // connect to WiFi
   Serial.print("Connecting to ");
   Serial.println(WlanPass::ssid);
-
   WiFi.begin(WlanPass::ssid, WlanPass::pass);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
@@ -34,7 +39,7 @@ void setup() {
   Serial.println("IP adress: ");
   Serial.println(WiFi.localIP());
 
-  // events
+  // initialize socketio events
   socketIO.onEvent(onSocketIOEvent);
   socketIO.begin(host, port, path);
 }
@@ -43,6 +48,11 @@ void setup() {
 void loop() {
   buttons.listen();
   socketIO.loop();
+  Expander1.write16(0xFF00);
+  delay(500);
+  Expander1.write16(0x00);
+  Serial.println(Expander1.lastError());
+  delay(500);
 }
 
 
