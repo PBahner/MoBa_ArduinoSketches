@@ -1,4 +1,4 @@
-#include <SocketIOclient.h>
+#include <SocketIOclient.h>  // library from https://github.com/Links2004/arduinoWebSockets
 #include <ArduinoJson.h>
 #include "WlanPass.h"
 #include "Buttons.h"
