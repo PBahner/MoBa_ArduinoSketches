@@ -5,12 +5,19 @@
 #include "WiFi.h"
 #include "MCP23017.h" // library from RobTillaart https://github.com/RobTillaart/MCP23017_RT
 
+#define TEST_MODE false
+
 Buttons buttons(0x38, 0x39); // (0x20, 0x21)
 MCP23017 Expander1(0x20);
 
 SocketIOclient socketIO;
 WiFiClient client;
-const char host[] = "192.168.10.130";
+
+#if TEST_MODE 
+  const char host[] = "192.168.178.81";
+#else
+  const char host[] = "192.168.10.130";
+#endif
 const int port = 5000; // Socket.IO Port Address
 const char path[] = "/socket.io/?EIO=4"; // Socket.IO Base Path
     
@@ -29,8 +36,14 @@ void setup() {
 
   // connect to WiFi
   Serial.print("Connecting to ");
-  Serial.println(WlanPass::ssid);
-  WiFi.begin(WlanPass::ssid, WlanPass::pass);
+  if (TEST_MODE) {
+    Serial.println(WlanPass::testssid);
+    WiFi.begin(WlanPass::testssid, WlanPass::testpass);
+  } else {
+    Serial.println(WlanPass::ssid);
+    WiFi.begin(WlanPass::ssid, WlanPass::pass);
+  }
+  
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
