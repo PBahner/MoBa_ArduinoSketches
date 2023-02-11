@@ -4,11 +4,18 @@
 #include "Buttons.h"
 #include "WiFi.h"
 #include "MCP23017.h" // library from RobTillaart https://github.com/RobTillaart/MCP23017_RT
+#include "turnoutLeds.h"
 
-#define TEST_MODE false
+#define TEST_MODE true
 
 Buttons buttons(0x38, 0x39); // (0x20, 0x21)
 MCP23017 Expander1(0x20);
+
+uint8_t const tLEDs_length = 4;
+TurnoutLeds tLEDs[] = {TurnoutLeds(0, &Expander1, 6, 7),
+                       TurnoutLeds(1, &Expander1, 4, 5),
+                       TurnoutLeds(4, &Expander1, 0, 1),
+                       TurnoutLeds(5, &Expander1, 2, 3)};
 
 SocketIOclient socketIO;
 WiFiClient client;
@@ -29,6 +36,7 @@ void setup() {
 
   Expander1.pinMode8(0, 0x00);
   Expander1.pinMode8(1, 0x00);
+  Expander1.write16(0x00);
 
   // initialize button listeners 
   buttons.onButtonsDown(1, onSwitchButtonsDown);
@@ -61,11 +69,6 @@ void setup() {
 void loop() {
   buttons.listen();
   socketIO.loop();
-  Expander1.write16(0xFF00);
-  delay(500);
-  Expander1.write16(0x00);
-  Serial.println(Expander1.lastError());
-  delay(500);
 }
 
 
@@ -112,11 +115,28 @@ void onSocketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t lengt
       // join default namespace (no auto join in Socket.IO V3)
       socketIO.send(sIOtype_CONNECT, "/");
       break;
-    case sIOtype_EVENT:
+    case sIOtype_EVENT: {
       Serial.printf("[IOc] Event: %s\n", payload);
-      // Send event
-      //socketIO.send(sIOtype_ACK, output);
+
+      const int capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(2);
+      StaticJsonDocument<500> doc;
+      DeserializationError error = deserializeJson(doc, payload);
+      if (error) {
+        Serial.print("fehler: ");
+        Serial.println(error.f_str());
+      }
+
+      const char* event = doc[0];
+      String sEvent = String(event);
+      Serial.print("event: "); Serial.println(sEvent);
+      JsonObject dataObject = doc[1]["data"];
+      if(sEvent == "init_switch_positions") {
+        for (int i = 0; i<tLEDs_length; i++) {
+          tLEDs[i].update(dataObject);
+        }
+      }
       break;
+    }
     case sIOtype_ACK:
       Serial.printf("[IOc] get ack: %u\n", length);
       break;
