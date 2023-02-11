@@ -11,11 +11,14 @@
 Buttons buttons(0x38, 0x39); // (0x20, 0x21)
 MCP23017 Expander1(0x20);
 
-uint8_t const tLEDs_length = 4;
+uint8_t const tLEDs_length = 7;
 TurnoutLeds tLEDs[] = {TurnoutLeds(0, &Expander1, 6, 7),
                        TurnoutLeds(1, &Expander1, 4, 5),
-                       TurnoutLeds(4, &Expander1, 0, 1),
-                       TurnoutLeds(5, &Expander1, 2, 3)};
+                       TurnoutLeds(2, &Expander1, 8, 9),
+                       TurnoutLeds(3, &Expander1, 12, 13),
+                       TurnoutLeds(4, &Expander1, 10, 11),
+                       TurnoutLeds(5, &Expander1, 0, 1),
+                       TurnoutLeds(6, &Expander1, 2, 3)};
 
 SocketIOclient socketIO;
 WiFiClient client;
@@ -130,7 +133,7 @@ void onSocketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t lengt
       String sEvent = String(event);
       Serial.print("event: "); Serial.println(sEvent);
       JsonObject dataObject = doc[1]["data"];
-      if(sEvent == "init_switch_positions") {
+      if(sEvent == "init_switch_positions" or sEvent == "update_switch_positions") {
         for (int i = 0; i<tLEDs_length; i++) {
           tLEDs[i].update(dataObject);
         }
