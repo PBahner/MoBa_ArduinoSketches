@@ -16,12 +16,12 @@ struct Switch {
 
 #if MODULE_ID == 0
   #define MSG_DATA_BYTE 0
-  Switch switches[5] = {{SwitchServo(), 0},
-                        {SwitchServo(), 1},
-                        {SwitchServo(), 2},
-                        {SwitchServo(), 3},
-                        {SwitchServo(), 4}};
-  const int deflection[5] = {400, 400, 600, 600, 800};
+  Switch switches[5] = {{SwitchServo(), 4},  // Switch 6
+                        {SwitchServo(), 3},  // Switch 5
+                        {SwitchServo(), 2},  // Switch 2
+                        {SwitchServo(), 1},  // Switch 1
+                        {SwitchServo(), 0}};  // Switch 0
+  const int deflection[5] = {800, 600, 600, 400, 400};
 #elif MODULE_ID == 1
   #define MSG_DATA_BYTE 1
   Switch switches[2] = {{SwitchServo(), 0},
