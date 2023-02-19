@@ -6,19 +6,19 @@
 #include "MCP23017.h" // library from RobTillaart https://github.com/RobTillaart/MCP23017_RT
 #include "turnoutLeds.h"
 
-#define TEST_MODE true
+#define TEST_MODE false
 
 Buttons buttons(0x38, 0x39); // (0x20, 0x21)
 MCP23017 Expander1(0x20);
 
 uint8_t const tLEDs_length = 7;
-TurnoutLeds tLEDs[] = {TurnoutLeds(0, &Expander1, 6, 7),
-                       TurnoutLeds(1, &Expander1, 4, 5),
+TurnoutLeds tLEDs[] = {TurnoutLeds(0, &Expander1, 10, 11),
+                       TurnoutLeds(1, &Expander1, 12, 13),
                        TurnoutLeds(2, &Expander1, 8, 9),
-                       TurnoutLeds(3, &Expander1, 12, 13),
-                       TurnoutLeds(4, &Expander1, 10, 11),
-                       TurnoutLeds(5, &Expander1, 0, 1),
-                       TurnoutLeds(6, &Expander1, 2, 3)};
+                       TurnoutLeds(3, &Expander1, 0, 1),
+                       TurnoutLeds(4, &Expander1, 3, 2),
+                       TurnoutLeds(5, &Expander1, 4, 5),
+                       TurnoutLeds(6, &Expander1, 6, 7)};
 
 SocketIOclient socketIO;
 WiFiClient client;
@@ -42,7 +42,7 @@ void setup() {
   Expander1.write16(0x00);
 
   // initialize button listeners 
-  buttons.onButtonsDown(1, onSwitchButtonsDown);
+  buttons.onButtonsDown(5, onSwitchButtonsDown);
   buttons.onButtonsDown(2, onSwitchButtonsDown);
 
   // connect to WiFi
@@ -77,7 +77,7 @@ void loop() {
 
 void onSwitchButtonsDown(uint8_t controlPanel, uint8_t switches[], uint8_t lengthOfSwitches) {
   //Serial.println("Helloooooo");
-  if (controlPanel == 1) {
+  if (controlPanel == 5) {
     for (int i=0; i<lengthOfSwitches; i++) {
       if (switches[i] == 0) {
         uint8_t data[1] = {switches[i]+6};
