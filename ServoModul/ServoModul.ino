@@ -1,7 +1,7 @@
 #include "SwitchServo.h"
 #include <mcp2515.h>
 
-#define MODULE_ID 1
+#define MODULE_ID 0
 
 #define DLC_MSG_TARGET_SWITCH_STATES 1
 #define ID_MSG_TARGET_SWITCH_STATES 1
@@ -80,7 +80,7 @@ void receiveEventCAN() {
 
 void updateSwitchStates() {
   for(int i=0; i<sizeof(switches)/sizeof(Switch); i++) {
-    bool state = bitRead(canMsgReceived.data[MSG_DATA_BYTE], i);
+    bool state = bitRead(canMsgReceived.data[MSG_DATA_BYTE], switches[i].id);
     Serial.println("move");
     switches[i].servo.moveSwitchServo(state);
   }
