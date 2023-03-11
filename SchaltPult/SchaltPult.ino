@@ -13,8 +13,8 @@ MCP23017 Expander1(0x20);
 
 uint8_t const tLEDs_length = 7;
 TurnoutLeds tLEDs[] = {TurnoutLeds(0, &Expander1, 10, 11),
-                       TurnoutLeds(1, &Expander1, 12, 13),
-                       TurnoutLeds(2, &Expander1, 8, 9),
+                       TurnoutLeds(1, &Expander1, 13, 12),
+                       TurnoutLeds(2, &Expander1, 9, 8),
                        TurnoutLeds(3, &Expander1, 0, 1),
                        TurnoutLeds(4, &Expander1, 3, 2),
                        TurnoutLeds(5, &Expander1, 4, 5),
