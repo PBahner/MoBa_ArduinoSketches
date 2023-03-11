@@ -21,7 +21,8 @@ struct Switch {
                         {SwitchServo(), 2},  // Switch 2
                         {SwitchServo(), 1},  // Switch 1
                         {SwitchServo(), 0}};  // Switch 0
-  const int deflection[5] = {800, 600, 600, 400, 400};
+  //const int deflection[5] = {800, 600, 600, 400, 400};
+  const int deflection[5] = {400, 400, 600, 600, 800};
 #elif MODULE_ID == 1
   #define MSG_DATA_BYTE 1
   Switch switches[2] = {{SwitchServo(), 0},
