@@ -1,2 +1,6 @@
 SchaltPult/WlanPass.h
 .vscode/
+*.elf
+*.hex
+*.bin
+*.eep
