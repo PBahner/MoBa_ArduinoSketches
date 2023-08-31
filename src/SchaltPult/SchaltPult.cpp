@@ -1,10 +1,15 @@
+#include <Arduino.h>
 #include <SocketIOclient.h>  // library from https://github.com/Links2004/arduinoWebSockets
 #include <ArduinoJson.h>
+#include <WiFi.h>
+#include <MCP23017.h>  // library from RobTillaart https://github.com/RobTillaart/MCP23017_RT
 #include "WlanPass.h"
 #include "Buttons.h"
-#include "WiFi.h"
-#include "MCP23017.h" // library from RobTillaart https://github.com/RobTillaart/MCP23017_RT
 #include "turnoutLeds.h"
+
+void onSwitchButtonsDown(uint8_t, uint8_t[], uint8_t);
+void createSocketIOEvent(String, uint8_t[], uint8_t);
+void onSocketIOEvent(socketIOmessageType_t, uint8_t *, size_t);
 
 #define TEST_MODE false
 
@@ -35,6 +40,7 @@ unsigned long lastBtnEvent;
 
 void setup() {
   Serial.begin(115200);
+  buttons.begin();
   Expander1.begin();
 
   Expander1.pinMode8(0, 0x00);

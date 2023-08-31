@@ -22,11 +22,14 @@ class Buttons {
   public:
 
     Buttons(uint8_t, uint8_t);
+    void begin();
     void listen();
     void onButtonsDown(uint8_t controlPanel, void (&buttonDownFunction)(uint8_t, uint8_t[], uint8_t));
 
   private:
 
+    uint8_t addrOut;
+    uint8_t addrIn;
     PCF8574 pcfOut;
     PCF8574 pcfIn;
     buttonArray previousButtonStates;

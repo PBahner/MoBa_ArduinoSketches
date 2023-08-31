@@ -1,5 +1,9 @@
+#include "Arduino.h"
 #include "SwitchServo.h"
 #include <mcp2515.h>
+
+void receiveEventCAN();
+void updateSwitchStates();
 
 #define MODULE_ID 0
 

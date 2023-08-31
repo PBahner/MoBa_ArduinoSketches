@@ -22,10 +22,10 @@ class TurnoutLeds {
         };
 
     private:
+        uint8_t const turnoutId;
         MCP23017 *expander;
         uint8_t const expPinPlus;
         uint8_t const expPinMinus;
-        uint8_t const turnoutId;
         uint8_t turnoutPos = tPos::none;
         ExpanderLED ledPlus = ExpanderLED(expander, &expPinPlus);
         ExpanderLED ledMinus = ExpanderLED(expander, &expPinMinus);

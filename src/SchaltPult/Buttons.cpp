@@ -1,12 +1,17 @@
 #include <Arduino.h>
 #include "Buttons.h"
 
-Buttons::Buttons(uint8_t addrOut, uint8_t addrIn) {
-  pcfOut.setAddress(addrOut);
-  pcfIn.setAddress(addrIn);
+Buttons::Buttons(uint8_t out, uint8_t in) {
+  addrOut = out;
+  addrIn = in;
+}
 
+void Buttons::begin() {
   pcfOut.begin(255);
   pcfIn.begin();
+
+  pcfOut.setAddress(addrOut);
+  pcfIn.setAddress(addrIn);
   
   previousButtonStates = getStates();
 }
