@@ -9,6 +9,9 @@ class ExpanderLED {
         ExpanderLED() {}
         ExpanderLED(MCP23017 *exp, uint8_t const *pin)
             : expander(exp), expPin(*pin) {
+        };
+
+        void begin() {
             began = true;
             expander->pinMode(expPin, OUTPUT);
             expander->digitalWrite(expPin, LOW);

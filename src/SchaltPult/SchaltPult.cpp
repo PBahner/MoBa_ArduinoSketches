@@ -11,7 +11,7 @@ void onSwitchButtonsDown(uint8_t, uint8_t[], uint8_t);
 void createSocketIOEvent(String, uint8_t[], uint8_t);
 void onSocketIOEvent(socketIOmessageType_t, uint8_t *, size_t);
 
-#define TEST_MODE false
+#define TEST_MODE true
 
 Buttons buttons(0x38, 0x39); // (0x20, 0x21)
 MCP23017 Expander1(0x20);
@@ -46,6 +46,10 @@ void setup() {
   Expander1.pinMode8(0, 0x00);
   Expander1.pinMode8(1, 0x00);
   Expander1.write16(0x00);
+
+  for (int i = 0; i<tLEDs_length; i++) {
+    tLEDs[i].begin();
+  }
 
   // initialize button listeners 
   buttons.onButtonsDown(5, onSwitchButtonsDown);

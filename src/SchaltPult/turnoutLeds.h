@@ -14,6 +14,12 @@ class TurnoutLeds {
     public:
         TurnoutLeds(int id, MCP23017 *exp, uint8_t pinPlus, uint8_t pinMinus)
             : turnoutId(id), expander(exp), expPinPlus(pinPlus), expPinMinus(pinMinus) {};
+
+        void begin() {
+            ledPlus.begin();
+            ledMinus.begin();
+        }
+        
         bool update(JsonObject &data) {
             if(!data.containsKey(String(turnoutId))) {return false;}
             turnoutPos = data[String(turnoutId)];
