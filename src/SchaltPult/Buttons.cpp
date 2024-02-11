@@ -20,6 +20,10 @@ void Buttons::onButtonsDown(uint8_t controlPanel, void (&buttonDownFunction)(uin
   eventFunctions.btnDownFunctions[controlPanel] = &buttonDownFunction;
 }
 
+void Buttons::onButtonsUp(uint8_t controlPanel, void (&buttonUpFunction)(uint8_t, uint8_t[], uint8_t)) {
+  eventFunctions.btnUpFunctions[controlPanel] = &buttonUpFunction;
+}
+
 void Buttons::listen() {
   const buttonArray buttonStates = getStates();
   checkForEvents(buttonStates);
@@ -30,19 +34,30 @@ void Buttons::listen() {
 void Buttons::checkForEvents(buttonArray buttonStates) {
   for(int r=0; r<ROWS; r++) {
     // abbrechen, wenn On-Event-Funktion nicht existiert
-    if(!eventFunctions.btnDownFunctions[r]) {continue;}
+    if(!eventFunctions.btnDownFunctions[r] and !eventFunctions.btnUpFunctions[r]) {continue;}
     // Array, in dem alle gedrückten Taster gespeichert werden   
     uint8_t buttonsDown[ROWS] = {NULL};
-    uint8_t arrayPos = 0;    
+    uint8_t buttonsUp[ROWS] = {NULL};
+    uint8_t arrayPosDown = 0;
+    uint8_t arrayPosUp = 0;
     for(int c=0; c<COLS; c++) {
       const bool raisingEdge = buttonStates.array[r][c] == true and previousButtonStates.array[r][c] == false;
-      if(raisingEdge) {
-        buttonsDown[arrayPos] = c;
-        arrayPos++;
+      const bool fallingEdge = buttonStates.array[r][c] == false and previousButtonStates.array[r][c] == true;
+      if(raisingEdge and eventFunctions.btnDownFunctions[r]) {
+        buttonsDown[arrayPosDown] = c;
+        arrayPosDown++;
+        Serial.println(c);
+      }
+      if(fallingEdge and eventFunctions.btnUpFunctions[r]) {
+        buttonsUp[arrayPosUp] = c;
+        arrayPosUp++;
       }
     }
-    if(arrayPos > 0) {  // existiert ein Wert in der Liste
-      eventFunctions.btnDownFunctions[r](r, buttonsDown, arrayPos);
+    if(arrayPosDown > 0) {  // existiert ein Wert in der Liste
+      eventFunctions.btnDownFunctions[r](r, buttonsDown, arrayPosDown);
+    }
+    if(arrayPosUp > 0) {
+      eventFunctions.btnUpFunctions[r](r, buttonsUp, arrayPosUp);
     }
   }
 }

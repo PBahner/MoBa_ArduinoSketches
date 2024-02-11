@@ -8,10 +8,12 @@
 #include "turnoutLeds.h"
 
 void onSwitchButtonsDown(uint8_t, uint8_t[], uint8_t);
+void onTrackButtonsUp(uint8_t, uint8_t[], uint8_t);
+void onTrackButtonsDown(uint8_t, uint8_t[], uint8_t);
 void createSocketIOEvent(String, uint8_t[], uint8_t);
 void onSocketIOEvent(socketIOmessageType_t, uint8_t *, size_t);
 
-#define TEST_MODE true
+#define TEST_MODE false
 
 Buttons buttons(0x38, 0x39); // (0x20, 0x21)
 MCP23017 Expander1(0x20);
@@ -54,6 +56,10 @@ void setup() {
   // initialize button listeners 
   buttons.onButtonsDown(5, onSwitchButtonsDown);
   buttons.onButtonsDown(2, onSwitchButtonsDown);
+  buttons.onButtonsDown(1, onTrackButtonsDown);
+  buttons.onButtonsUp(1, onTrackButtonsUp);
+  buttons.onButtonsDown(4, onTrackButtonsDown);
+  buttons.onButtonsUp(4, onTrackButtonsUp);
 
   // connect to WiFi
   Serial.print("Connecting to ");
@@ -91,12 +97,41 @@ void onSwitchButtonsDown(uint8_t controlPanel, uint8_t switches[], uint8_t lengt
     for (int i=0; i<lengthOfSwitches; i++) {
       if (switches[i] == 0) {
         uint8_t data[1] = {switches[i]+6};
-        createSocketIOEvent("change_switches", data, lengthOfSwitches);
+        createSocketIOEvent("change_turnouts", data, lengthOfSwitches);
         return;
       }
     }
   } else {
-    createSocketIOEvent("change_switches", switches, lengthOfSwitches);
+    createSocketIOEvent("change_turnouts", switches, lengthOfSwitches);
+  }
+}
+
+
+void onTrackButtonsDown(uint8_t controlPanel, uint8_t tracks[], uint8_t lengthOfTracks) {
+  if (controlPanel == 4) {
+    for (int i=0; i<lengthOfTracks; i++) {
+      if (tracks[i] == 0) {
+        uint8_t data[1] = {tracks[i]+6};
+        createSocketIOEvent("track_interruptions_on", data, lengthOfTracks);
+        return;
+      }
+    }
+  } else {
+    createSocketIOEvent("track_interruptions_on", tracks, lengthOfTracks);
+  }
+}
+
+void onTrackButtonsUp(uint8_t controlPanel, uint8_t tracks[], uint8_t lengthOfTracks) {
+  if (controlPanel == 4) {
+    for (int i=0; i<lengthOfTracks; i++) {
+      if (tracks[i] == 0) {
+        uint8_t data[1] = {tracks[i]+6};
+        createSocketIOEvent("track_interruptions_off", data, lengthOfTracks);
+        return;
+      }
+    }
+  } else {
+    createSocketIOEvent("track_interruptions_off", tracks, lengthOfTracks);
   }
 }
 

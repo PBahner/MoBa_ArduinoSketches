@@ -11,9 +11,11 @@ struct buttonArray {
 };
 struct eventFunctionsArray {
   void (*btnDownFunctions[ROWS])(uint8_t, uint8_t[], uint8_t);
+  void (*btnUpFunctions[ROWS])(uint8_t, uint8_t[], uint8_t);
   eventFunctionsArray() {
     for(int r=0; r<ROWS; r++) {
       btnDownFunctions[r] = NULL;
+      btnUpFunctions[r] = NULL;
     }
   }
 };
@@ -25,6 +27,7 @@ class Buttons {
     void begin();
     void listen();
     void onButtonsDown(uint8_t controlPanel, void (&buttonDownFunction)(uint8_t, uint8_t[], uint8_t));
+    void onButtonsUp(uint8_t controlPanel, void (&buttonUpFunction)(uint8_t, uint8_t[], uint8_t));
 
   private:
 
