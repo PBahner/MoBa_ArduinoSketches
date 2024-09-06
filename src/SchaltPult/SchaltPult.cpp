@@ -3,7 +3,8 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <MCP23017.h>  // library from RobTillaart https://github.com/RobTillaart/MCP23017_RT
-#include "WlanPass.h"
+#include "CredentialManager.h"
+#include "Credentials.h"
 #include "Buttons.h"
 #include "turnoutLeds.h"
 
@@ -13,7 +14,7 @@ void onTrackButtonsDown(uint8_t, uint8_t[], uint8_t);
 void createSocketIOEvent(String, uint8_t[], uint8_t);
 void onSocketIOEvent(socketIOmessageType_t, uint8_t *, size_t);
 
-#define TEST_MODE false
+bool TEST_MODE;
 
 Buttons buttons(0x38, 0x39); // (0x20, 0x21)
 MCP23017 Expander1(0x20);
@@ -30,15 +31,38 @@ TurnoutLeds tLEDs[] = {TurnoutLeds(0, &Expander1, 10, 11),
 SocketIOclient socketIO;
 WiFiClient client;
 
-#if TEST_MODE 
-  const char host[] = "192.168.178.81";
-#else
-  const char host[] = "192.168.10.130";
-#endif
+const char *host;
 const int port = 5000; // Socket.IO Port Address
 const char path[] = "/socket.io/?EIO=4"; // Socket.IO Base Path
     
 unsigned long lastBtnEvent;
+
+const Credential findAvailableSSID(Credential credentials[], int numberOfSSIDs) {
+  while (true) {
+    // Start Wi-Fi scanning
+    int numNetworks = WiFi.scanNetworks(false, true); // Scan for networks
+
+    // Check for each SSID in the provided list
+    for (int i = 0; i < numNetworks; i++) {
+        String foundSSID = WiFi.SSID(i); // Get the SSID of the found network
+        // Check against the given SSIDs
+        for (int j = 0; j < numberOfSSIDs; j++) {
+            if (foundSSID.equals(credentials[j].ssid)) {
+                Serial.print("Found SSID: ");
+                Serial.println(foundSSID);
+                return credentials[j]; // Return the first found SSID
+            }
+        }
+    }
+  }
+}
+
+void tryConnectWiFi(const char* ssid, const char* password) {
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+}
 
 void setup() {
   Serial.begin(115200);
@@ -61,27 +85,28 @@ void setup() {
   buttons.onButtonsDown(4, onTrackButtonsDown);
   buttons.onButtonsUp(4, onTrackButtonsUp);
 
-  // connect to WiFi
-  Serial.print("Connecting to ");
-  if (TEST_MODE) {
-    Serial.println(WlanPass::testssid);
-    WiFi.begin(WlanPass::testssid, WlanPass::testpass);
+  Credential credentials[] = {
+    CredentialManager::productionCredential,
+    CredentialManager::testCredential
+  };
+
+  const Credential targetCredential = findAvailableSSID(credentials, sizeof(credentials) / sizeof(credentials[0]));
+
+  WiFi.begin(targetCredential.ssid, targetCredential.pass);
+  tryConnectWiFi(targetCredential.ssid, targetCredential.pass);
+
+  if (targetCredential.ssid == CredentialManager::productionCredential.ssid) {
+    TEST_MODE = false;
   } else {
-    Serial.println(WlanPass::ssid);
-    WiFi.begin(WlanPass::ssid, WlanPass::pass);
+    TEST_MODE = true;
   }
-  
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("WiFi connected");
+
   Serial.println("IP adress: ");
   Serial.println(WiFi.localIP());
 
   // initialize socketio events
   socketIO.onEvent(onSocketIOEvent);
-  socketIO.begin(host, port, path);
+  socketIO.begin(targetCredential.host, port, path);
 }
 
 

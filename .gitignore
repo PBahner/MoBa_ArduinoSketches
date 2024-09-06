@@ -1,4 +1,4 @@
-src/SchaltPult/WlanPass.h
+src/SchaltPult/Credentials.h
 .vscode/
 *.elf
 *.hex
