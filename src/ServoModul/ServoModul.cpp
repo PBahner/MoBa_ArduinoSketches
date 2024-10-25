@@ -40,11 +40,11 @@ struct Switch {
 
 #if MODULE_ID == 0
   #define MSG_DATA_BYTE 0
-  Switch switches[5] = {{SwitchServo(), 6, true},  // Switch 6
-                        {SwitchServo(), 5, true},  // Switch 5
+  Switch switches[5] = {{SwitchServo(), 6, false},  // Switch 6
+                        {SwitchServo(), 5, false},  // Switch 5
                         {SwitchServo(), 2, false},  // Switch 2
-                        {SwitchServo(), 1, false},  // Switch 1
-                        {SwitchServo(), 0, true}};  // Switch 0
+                        {SwitchServo(), 1, true},  // Switch 1
+                        {SwitchServo(), 0, false}};  // Switch 0
   const int deflection[5] = {400, 400, 600, 600, 800};
   const bool withFeedback = true;
 

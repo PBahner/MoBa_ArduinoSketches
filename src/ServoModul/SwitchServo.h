@@ -68,14 +68,14 @@ class SwitchServo: public Servo {
       if(!withFeedback) {
         currentStateMinus = false;
         currentStatePlus = true;
-        servoDirection = direction;
       }
+      servoDirection = direction;
     }
 
     void moveSwitchServo(bool target) {  // test erforderlich
       if (!attached()) {return;}
       target = target ^ servoDirection;  // apply servo direction with xor
-      int8_t currentSwitchState = 2 - currentStateMinus - currentStatePlus * 2;
+      int8_t currentSwitchState = (2 - currentStateMinus - currentStatePlus * 2) ^ servoDirection;
       if((!(target == currentSwitchState)) and ((plusInitialized and minusInitialized) or !withFeedback)) {
         if(target) {
           Serial.println("move up");
