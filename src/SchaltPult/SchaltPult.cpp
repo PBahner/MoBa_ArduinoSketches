@@ -7,6 +7,7 @@
 #include "Credentials.h"
 #include "Buttons.h"
 #include "turnoutLeds.h"
+#include "SignalLed.h"
 
 void onSwitchButtonsDown(uint8_t, uint8_t[], uint8_t);
 void onTrackButtonsUp(uint8_t, uint8_t[], uint8_t);
@@ -18,6 +19,8 @@ bool TEST_MODE;
 
 Buttons buttons(0x38, 0x39); // (0x20, 0x21)
 MCP23017 Expander1(0x20);
+MCP23017 Expander2(0x21);
+MCP23017 Expander3(0x22);
 
 uint8_t const tLEDs_length = 7;
 TurnoutLeds tLEDs[] = {TurnoutLeds(0, &Expander1, 10, 11),
@@ -27,6 +30,17 @@ TurnoutLeds tLEDs[] = {TurnoutLeds(0, &Expander1, 10, 11),
                        TurnoutLeds(4, &Expander1, 3, 2),
                        TurnoutLeds(5, &Expander1, 4, 5),
                        TurnoutLeds(6, &Expander1, 6, 7)};
+
+uint8_t const sLEDs_length = 9;
+SignalLED sLEDs[] = {SignalLED(3, 2, &Expander2, 9),
+                     SignalLED(4, 2, &Expander2, 8),
+                     SignalLED(5, 2, &Expander2, 7),
+                     SignalLED(6, 1, &Expander3, 0),
+                     SignalLED(10, 1, &Expander3, 1),
+                     SignalLED(7, 1, &Expander3, 2),
+                     SignalLED(8, 1, &Expander3, 4),
+                     SignalLED(2, 1, &Expander3, 5),
+                     SignalLED(1, 1, &Expander3, 6)};
 
 SocketIOclient socketIO;
 WiFiClient client;
@@ -67,17 +81,30 @@ void tryConnectWiFi(const char* ssid, const char* password) {
 void setup() {
   Serial.begin(115200);
   buttons.begin();
-  Expander1.begin();
 
+  Expander1.begin();
   Expander1.pinMode8(0, 0x00);
   Expander1.pinMode8(1, 0x00);
   Expander1.write16(0x00);
 
+  Expander2.begin();
+  Expander2.pinMode8(0, 0x00);
+  Expander2.pinMode8(1, 0x00);
+  Expander2.write16(0x00);
+
+  Expander3.begin();
+  Expander3.pinMode8(0, 0x00);
+  Expander3.pinMode8(1, 0x00);
+  Expander3.write16(0x00);
+
   for (int i = 0; i<tLEDs_length; i++) {
     tLEDs[i].begin();
   }
+  for (int i = 0; i<sLEDs_length; i++) {
+    sLEDs[i].begin();
+  }
 
-  // initialize button listeners 
+  // initialize button listeners
   buttons.onButtonsDown(5, onSwitchButtonsDown);
   buttons.onButtonsDown(2, onSwitchButtonsDown);
   buttons.onButtonsDown(1, onTrackButtonsDown);
@@ -206,6 +233,10 @@ void onSocketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t lengt
       if(sEvent == "init_switch_positions" or sEvent == "update_switch_positions") {
         for (int i = 0; i<tLEDs_length; i++) {
           tLEDs[i].update(dataObject);
+        }
+      } else if(sEvent == "distribute_track_interruptions") {
+        for (int i = 0; i<sLEDs_length; i++) {
+          sLEDs[i].update(dataObject);
         }
       }
       break;
