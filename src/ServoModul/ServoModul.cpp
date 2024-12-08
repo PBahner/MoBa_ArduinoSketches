@@ -107,17 +107,17 @@ void loop() {
 }
 
 void receiveEventCAN() {
-  Serial.print(canMsgReceived.can_id); // print ID
-  Serial.print(" "); 
-  Serial.print(canMsgReceived.can_dlc); // print DLC
-  Serial.print(" ");
-  for(int i=0; i<canMsgReceived.can_dlc; i++){
-    Serial.print(canMsgReceived.data[i]);
-    Serial.print(" ");
-  }
-  Serial.println("empfangen");
+  // Serial.print(canMsgReceived.can_id); // print ID
+  // Serial.print(" "); 
+  // Serial.print(canMsgReceived.can_dlc); // print DLC
+  // Serial.print(" ");
+  // for(int i=0; i<canMsgReceived.can_dlc; i++){
+  //   Serial.print(canMsgReceived.data[i]);
+  //   Serial.print(" ");
+  // }
+  // Serial.println("empfangen");
   switch(canMsgReceived.can_id) {
-    case 1: updateTargetSwitchStates(); Serial.println("Weiche"); break;
+    case 1: updateTargetSwitchStates(); /*Serial.println("Weiche");*/ break;
     case 2: initializeSwitchReferences(); break;
     case 11: updateCurrentSwitchStates(); break;
   }
@@ -132,7 +132,7 @@ void updateTargetSwitchStates() {
 }
 
 void initializeSwitchReferences() {  // funktionalität bewiesen 22.12.2023
-  Serial.println("initSwitchRef");
+  // Serial.println("initSwitchRef");
   uint8_t switchId = canMsgReceived.data[3] >> 1;
   boolean switchState = bitRead(canMsgReceived.data[3], 0);
 
@@ -169,9 +169,9 @@ void updateCurrentSwitchStates() {
         switches[i].inputRefPlus.input_type == inputType and
         switches[i].inputRefPlus.input_address == inputId) {
       bool switchState = bitRead(inputData, switches[i].inputRefPlus.input_pin);
-      Serial.print("update plus "); Serial.print(switchState);
-      Serial.print(" "); Serial.print(inputData);
-      Serial.print(" switch: "); Serial.println(switches[i].id);
+      // Serial.print("update plus "); Serial.print(switchState);
+      // Serial.print(" "); Serial.print(inputData);
+      // Serial.print(" switch: "); Serial.println(switches[i].id);
       switches[i].servo.updateCurrentStatePlus(switchState);
     }
     if (
@@ -179,8 +179,8 @@ void updateCurrentSwitchStates() {
         switches[i].inputRefMinus.input_type == inputType and
         switches[i].inputRefMinus.input_address == inputId) {
       bool switchState = bitRead(inputData, switches[i].inputRefMinus.input_pin);
-      Serial.print("update minus "); Serial.print(switchState);
-      Serial.print(" "); Serial.println(inputData);
+      // Serial.print("update minus "); Serial.print(switchState);
+      // Serial.print(" "); Serial.println(inputData);
       switches[i].servo.updateCurrentStateMinus(switchState);
     }
   }
