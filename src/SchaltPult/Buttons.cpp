@@ -64,7 +64,6 @@ void Buttons::checkForEvents(buttonArray buttonStates) {
 
 buttonArray Buttons::getStates() {
   buttonArray tempButtonStates;
-  //Serial.println("\n\n\n===");
   // iterate all rows
   for(int r=0; r<ROWS; r++) {
     // power off row (row is used now, connected to GND)
@@ -72,13 +71,10 @@ buttonArray Buttons::getStates() {
     // iterate all columns and read state
     for(int c=0; c<COLS; c++) {
       tempButtonStates.array[r][c] = !pcfIn.read(c);
-      //Serial.print(tempButtonStates.array[r][c]);
     }
-    //Serial.println("");
     // power on row (row not used anymore)
     // connected to 5V but blocked by diode
     pcfOut.write(r, HIGH);
-    delayMicroseconds(50);
   }
   return tempButtonStates;
 }
