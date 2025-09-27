@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include <SocketIOclient.h>  // library from https://github.com/Links2004/arduinoWebSockets
+#include <WebSocketsClient.h>
 #include <ArduinoJson.h>
 #include <WiFi.h>
 #include <MCP23017.h>  // library from RobTillaart https://github.com/RobTillaart/MCP23017_RT
@@ -12,8 +12,8 @@
 void onSwitchButtonsDown(uint8_t, uint8_t[], uint8_t);
 void onTrackButtonsUp(uint8_t, uint8_t[], uint8_t);
 void onTrackButtonsDown(uint8_t, uint8_t[], uint8_t);
-void createSocketIOEvent(String, uint8_t[], uint8_t);
-void onSocketIOEvent(socketIOmessageType_t, uint8_t *, size_t);
+void createWebsocketEvent(String, uint8_t[], uint8_t);
+void onWebSocketEvent(WStype_t type, uint8_t * payload, size_t length);
 
 bool TEST_MODE;
 
@@ -42,12 +42,12 @@ SignalLED sLEDs[] = {SignalLED(3, 2, &Expander2, 9),
                      SignalLED(2, 1, &Expander3, 5),
                      SignalLED(1, 1, &Expander3, 6)};
 
-SocketIOclient socketIO;
+WebSocketsClient webSocket;
 WiFiClient client;
 
 const char *host;
 const int port = 5000; // Socket.IO Port Address
-const char path[] = "/socket.io/?EIO=4"; // Socket.IO Base Path
+const char path[] = "/"; // Socket.IO Base Path
     
 unsigned long lastBtnEvent;
 
@@ -131,9 +131,10 @@ void setup() {
   Serial.println("IP adress: ");
   Serial.println(WiFi.localIP());
 
-  // initialize socketio events
-  socketIO.onEvent(onSocketIOEvent);
-  socketIO.begin(targetCredential.host, port, path);
+  // Initialize WebSocket
+  webSocket.begin(targetCredential.host, port, path);
+  webSocket.onEvent(onWebSocketEvent);
+  webSocket.setReconnectInterval(5000); // auto-reconnect after 5s
 }
 
 
@@ -144,17 +145,16 @@ void loop() {
 
 
 void onSwitchButtonsDown(uint8_t controlPanel, uint8_t switches[], uint8_t lengthOfSwitches) {
-  //Serial.println("Helloooooo");
   if (controlPanel == 5) {
     for (int i=0; i<lengthOfSwitches; i++) {
       if (switches[i] == 0) {
         uint8_t data[1] = {switches[i]+6};
-        createSocketIOEvent("change_turnouts", data, lengthOfSwitches);
+        createWebsocketEvent("change_turnouts", data, lengthOfSwitches);
         return;
       }
     }
   } else {
-    createSocketIOEvent("change_turnouts", switches, lengthOfSwitches);
+    createWebsocketEvent("change_turnouts", switches, lengthOfSwitches);
   }
 }
 
@@ -164,12 +164,12 @@ void onTrackButtonsDown(uint8_t controlPanel, uint8_t tracks[], uint8_t lengthOf
     for (int i=0; i<lengthOfTracks; i++) {
       if (tracks[i] == 0) {
         uint8_t data[1] = {tracks[i]+6};
-        createSocketIOEvent("track_interruptions_on", data, lengthOfTracks);
+        createWebsocketEvent("track_interruptions_on", data, lengthOfTracks);
         return;
       }
     }
   } else {
-    createSocketIOEvent("track_interruptions_on", tracks, lengthOfTracks);
+    createWebsocketEvent("track_interruptions_on", tracks, lengthOfTracks);
   }
 }
 
@@ -178,80 +178,72 @@ void onTrackButtonsUp(uint8_t controlPanel, uint8_t tracks[], uint8_t lengthOfTr
     for (int i=0; i<lengthOfTracks; i++) {
       if (tracks[i] == 0) {
         uint8_t data[1] = {tracks[i]+6};
-        createSocketIOEvent("track_interruptions_off", data, lengthOfTracks);
+        createWebsocketEvent("track_interruptions_off", data, lengthOfTracks);
         return;
       }
     }
   } else {
-    createSocketIOEvent("track_interruptions_off", tracks, lengthOfTracks);
+    createWebsocketEvent("track_interruptions_off", tracks, lengthOfTracks);
   }
 }
 
 
-void createSocketIOEvent(String eventName, uint8_t data[], uint8_t length) {
+void createWebsocketEvent(String eventName, uint8_t data[], uint8_t length) {
   StaticJsonDocument<1024> doc;
-  doc.add(eventName);
+  doc["msg_id"] = eventName;
   
-  JsonArray dataArray = doc[1].createNestedArray("data");
+  JsonArray dataArray = doc.createNestedArray("data");
   for(int i=0; i<length; i++) {
     dataArray.add(data[i]);
   }
   
   String output;
   serializeJson(doc, output);
-  socketIO.sendEVENT(output);
-  Serial.print("[sendEvent] ");
-  Serial.println(output);   
+  webSocket.sendTXT(output);
+  // Serial.print("[sendEvent] ");
+  // Serial.println(output);   
 }
 
 
-void onSocketIOEvent(socketIOmessageType_t type, uint8_t * payload, size_t length) {
+void onWebSocketEvent(WStype_t  type, uint8_t * payload, size_t length) {
   switch(type) {
-    case sIOtype_DISCONNECT:
-      Serial.printf("[IOc] Disconnected!\n");
+    case WStype_DISCONNECTED:
+      Serial.printf("[WS] Disconnected!\n");
       break;
-    case sIOtype_CONNECT:
-      Serial.printf("[IOc] Connected to url: %s\n", payload);
-      // join default namespace (no auto join in Socket.IO V3)
-      socketIO.send(sIOtype_CONNECT, "/");
+    
+    case WStype_CONNECTED:
+      Serial.printf("[WS] Connected to url: %s\n", payload);
       break;
-    case sIOtype_EVENT: {
-      Serial.printf("[IOc] Event: %s\n", payload);
+    
+    case WStype_TEXT: {
+      // Serial.printf("[WS] Event: %s\n", payload);
 
-      const int capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(2);
-      StaticJsonDocument<500> doc;
+      StaticJsonDocument<1024> doc;
       DeserializationError error = deserializeJson(doc, payload);
       if (error) {
-        Serial.print("fehler: ");
+        Serial.print("[WS] JSON parse error: ");
         Serial.println(error.f_str());
+        return;
       }
 
-      const char* event = doc[0];
-      String sEvent = String(event);
-      Serial.print("event: "); Serial.println(sEvent);
-      JsonObject dataObject = doc[1]["data"];
-      if(sEvent == "init_switch_positions" or sEvent == "update_switch_positions") {
-        for (int i = 0; i<tLEDs_length; i++) {
-          tLEDs[i].update(dataObject);
+      const char* msg_id = doc["msg_id"];
+      JsonObject data = doc["data"].as<JsonObject>();
+
+      if (strcmp(msg_id, "init_switch_positions") == 0 ||
+          strcmp(msg_id, "update_switch_positions") == 0) {
+        for (int i = 0; i < tLEDs_length; i++) {
+          tLEDs[i].update(data);
         }
-      } else if(sEvent == "distribute_track_interruptions") {
-        for (int i = 0; i<sLEDs_length; i++) {
-          sLEDs[i].update(dataObject);
+      } else if (strcmp(msg_id, "distribute_track_interruptions") == 0) {
+        for (int i = 0; i < sLEDs_length; i++) {
+          sLEDs[i].update(data);
         }
       }
       break;
     }
-    case sIOtype_ACK:
-      Serial.printf("[IOc] get ack: %u\n", length);
-      break;
-    case sIOtype_ERROR:
-      Serial.printf("[IOc] get error: %u\n", length);
-      break;
-    case sIOtype_BINARY_EVENT:
-      Serial.printf("[IOc] get binary: %u\n", length);
-      break;
-    case sIOtype_BINARY_ACK:
-      Serial.printf("[IOc] get binary ack: %u\n", length);
-      break;    
+    
+    case WStype_ERROR:
+      Serial.printf("[WS] get error: %u\n", length);
+      break;  
   }
 }
