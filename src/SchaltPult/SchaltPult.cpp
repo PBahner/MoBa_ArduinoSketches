@@ -78,6 +78,13 @@ void tryConnectWiFi(const char* ssid, const char* password) {
   }
 }
 
+void wsTask(void* pvParameters) {
+  for (;;) {
+      webSocket.loop();
+      vTaskDelay(1); // 1 tick = ~1ms
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   buttons.begin();
@@ -120,6 +127,7 @@ void setup() {
   const Credential targetCredential = findAvailableSSID(credentials, sizeof(credentials) / sizeof(credentials[0]));
 
   WiFi.begin(targetCredential.ssid, targetCredential.pass);
+  WiFi.setSleep(false);
   tryConnectWiFi(targetCredential.ssid, targetCredential.pass);
 
   if (targetCredential.ssid == CredentialManager::productionCredential.ssid) {
@@ -135,12 +143,11 @@ void setup() {
   webSocket.begin(targetCredential.host, port, path);
   webSocket.onEvent(onWebSocketEvent);
   webSocket.setReconnectInterval(5000); // auto-reconnect after 5s
+  xTaskCreatePinnedToCore(wsTask, "wsTask", 4096, NULL, 1, NULL, 1);
 }
-
 
 void loop() {
   buttons.listen();
-  socketIO.loop();
 }
 
 
